@@ -1,0 +1,43 @@
+--- 
+apiVersion: v1
+data: 
+  appsettings.Production-prod.json: |-
+      {
+        "AllowedHosts": "*",
+        "Serilog": {
+          "Using": [],
+          "MinimumLevel": {
+            "Default": "Verbose",
+            "Override": {
+              "Microsoft": "Verbose",
+              "System": "Verbose"
+            }
+          },
+          "Enrich": [ "FromLogContext", "WithMachineName", "WithProcessId", "WithThreadId" ], //3 packages required
+          "WriteTo": [
+            {
+              "Name": "AzureTableStorageWithProperties",
+              "Args": {
+                "storageTableName": "LoggingApiSelfLogsProd",
+                "connectionString": "<set-by-key-vault>",
+                "keyGenerator": "QuickTools.Logging.Api.KeyGenerators.LoggingKeyGenerator, QuickTools.Logging.Api"
+              },
+            },
+            {
+              "Name": "Console"
+            },
+          ]
+        },
+        "LogsAzureStorageAccountConnectionString": "<set-by-key-vault>",
+        "AzureTableStorageLogsTableName": "QuickToolsLogsProd",
+        "X-API-KEY": "<set-by-key-vault>",
+        "KeyVault": {
+          "Enabled": "true",
+          "Name": "kv-sc-qt",
+          "ClientId": "fed5db78-0f3f-49cc-bbc4-c51a514546df"
+        }
+      }
+kind: ConfigMap
+metadata: 
+  name: quicktools-logapi-config
+  namespace: quicktools-prod

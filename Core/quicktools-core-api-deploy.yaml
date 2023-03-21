@@ -1,0 +1,67 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quicktools-coreapi-deployment
+  labels:
+    app: quicktools-coreapi
+  namespace: quicktools-prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: quicktools-coreapi
+  template:
+    metadata:
+      labels:
+        app: quicktools-coreapi
+    spec:
+      containers:
+        - name: quicktools-coreapi
+          image: strategycompassacr.azurecr.io/quicktools/quicktoolscoreapi:3225
+          imagePullPolicy: Always
+          env:
+          - name: "ASPNETCORE_ENVIRONMENT"
+            value: "Production-prod"
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: "250m" 
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi" 
+          volumeMounts:
+          - name: config-volume
+            mountPath: "/etc/config/appsettings"
+          - name: secrets-volume
+            mountPath: "/etc/config/certificates"
+            readOnly: true
+      # imagePullSecrets:
+      #   - name: qmcontainerregisteryimagepullsecret
+      nodeSelector:
+        agentpool: linuxpool
+      volumes:
+        - name: config-volume
+          configMap:
+            name: quicktools-coreapi-config
+        - name: secrets-volume
+          secret:
+            secretName: quicktools-kv-cert-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: quicktools-coreapi-service
+  labels:
+    app: quicktools-coreapi
+  namespace: quicktools-prod
+spec:
+  type: ClusterIP
+  selector:
+    app: quicktools-coreapi
+  ports:
+    - port: 80
+      targetPort: 80
+---

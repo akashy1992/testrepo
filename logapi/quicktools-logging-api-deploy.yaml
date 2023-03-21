@@ -1,0 +1,65 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quicktools-logapi-deployment
+  labels:
+    app: quicktools-logapi
+  namespace: quicktools-prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: quicktools-logapi
+  template:
+    metadata:
+      labels:
+        app: quicktools-logapi
+    spec:
+      containers:
+        - name: quicktools-logapi
+          image: strategycompassacr.azurecr.io/quicktools/quicktoolsloggingapi:2250
+          imagePullPolicy: Always
+          env:
+          - name: "ASPNETCORE_ENVIRONMENT"
+            value: "Production-prod"
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: "250m" 
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi" 
+          volumeMounts:
+          - name: config-volume
+            mountPath: "/etc/config/appsettings"
+          - name: secrets-volume
+            mountPath: "/etc/config/certificates"
+            readOnly: true
+      nodeSelector:
+        agentpool: linuxpool
+      volumes:
+        - name: config-volume
+          configMap:
+            name: quicktools-logapi-config
+        - name: secrets-volume
+          secret:
+            secretName: quicktools-kv-cert-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: quicktools-logapi-service
+  labels:
+    app: quicktools-logapi
+  namespace: quicktools-prod
+spec:
+  type: ClusterIP
+  selector:
+    app: quicktools-logapi
+  ports:
+    - port: 80
+      targetPort: 80
+---

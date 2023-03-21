@@ -1,0 +1,92 @@
+--- 
+apiVersion: v1
+data: 
+  appsettings.Production-prod.json: |-
+      {
+        "ConnectionStrings": {
+          "DefaultConnection": "<Read_From_Key_Vault>"
+        },
+        "ClearDbOnServerStart": false,
+        "Serilog": {
+          "Using": [],
+          "MinimumLevel": {
+            "Default": "Information",
+            "Override": {
+              "Microsoft": "Warning",
+              "System": "Warning"
+            }
+          },
+          "Enrich": [ "FromLogContext", "WithMachineName", "WithProcessId", "WithThreadId" ], //3 packages required
+          "WriteTo": [
+            {
+              "Name": "Console"
+            },
+            {
+              "Name": "Http",
+              "Args": {
+                "requestUri": "https://logapi.prod.quicktools.cloud/api/v1/LogEvents/log-events",
+                "httpClient": "QuickTools.Core.SerilogHttpClient.SeriLogHttpClient, QuickTools.Core"
+              }
+            }
+          ]
+        },
+        "SerilogXAPIKEY": "<Read_From_Key_Vault>",
+        "KeyVault": {
+          "Enabled": "true",
+          "Name": "kv-quicktools-prod",
+          "ClientId": "fed5db78-0f3f-49cc-bbc4-c51a514546df",
+          "TenantId": "a07ebae6-43b2-4e80-a99e-7801411aa9ae"
+        },
+        "MyConfig": {
+          "HostsAddresses": {
+            "IdentityServer": "https://idp.prod.quicktools.cloud/",
+            "EmailApi": "https://localhost:5009/",
+            "CoreApi": "https://coreapi.prod.quicktools.cloud/",
+            "AdminWeb": "https://adminweb.prod.quicktools.cloud/",
+            "ClientAdminWeb":  "https://clientadminweb.prod.quicktools.cloud/",
+            "AddinWeb": "https://quickslidewebapp.prod.quicktools.cloud/"
+          },
+          "ServiceBus": {
+            "ConnectionString": "<Read_From_Key_Vault>",
+            "EmailsQueueName": "emailsqueue-production-prod"
+            },
+          "ScTenant": {
+            "id": "ce28882b-ecbd-4b61-ae7e-0c91f178cca3",
+            "name": "Strategy Compass",
+            "aadRegisteredAppClientID": "17d75e36-6fe5-4467-9723-37d116e0b5a6",
+            "aadRegisteredAppClientSecret": "<Read_From_Key_Vault>",
+            "aadRegisteredAppTenantID": "a07ebae6-43b2-4e80-a99e-7801411aa9ae",
+            "aadAuthenticationScheme": "sc-aad",
+            "domainName": "testclientweb.prod.quicktools.cloud",
+            "profileSharingEnabled": true,
+            "defaultlanguagecode": "en-us",
+            "isSeeded": true,
+            "clientAdminWebAppDomain": "clientadminweb.prod.quicktools.cloud"
+          },
+          "QuickToolsAdminsEmails": [
+            "ahmad.ellahib@strategy-compass.com",
+            "Akash.Yadav@strategy-compass.com"
+          ],
+          "AllowedOrigins": [
+            {
+              "Name": "AddinWeb",
+              "Url": "https://quickslidewebapp.prod.quicktools.cloud",
+              "CoreApi": true
+            },
+            {
+              "Name": "AdminWeb",
+              "Url": "https://adminweb.prod.quicktools.cloud",
+              "CoreApi": true
+            },
+            {
+              "Name": "ClientAdminWeb",
+              "Url": "https://clientadminweb.prod.quicktools.cloud",
+              "CoreApi": true
+            }
+            ]
+        }
+      }
+kind: ConfigMap
+metadata: 
+  name: quicktools-coreapi-config
+  namespace: quicktools-prod
